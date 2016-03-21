@@ -394,7 +394,29 @@ void blur2d( CRGB* leds, uint8_t width, uint8_t height, fract8 blur_amount)
     blurColumns(leds, width, height, blur_amount);
 }
 
+
 // blurRows: perform a blur1d on every row of a rectangular matrix
+void blurRows(CRGB* leds, uint8_t width, uint8_t height, fract8 blur_amount)
+{
+    // blur rows
+    uint8_t keep = 255 - blur_amount;
+    uint8_t seep = blur_amount >> 1;
+    for( uint8_t rows = 0; rows < height; rows++) {
+        CRGB carryover = CRGB::Black;
+        for( uint8_t i = 0; i < width; i++) {
+            CRGB cur = leds[XY(i, rows)];
+            CRGB part = cur;
+            part.nscale8( seep);
+            cur.nscale8( keep);
+            cur += carryover;
+            if( i) leds[XY(i-1,rows)] += part;
+            leds[XY(i,rows)] = cur;
+            carryover = part;
+        }
+    }
+}
+
+/*
 void blurRows( CRGB* leds, uint8_t width, uint8_t height, fract8 blur_amount)
 {
     for( uint8_t row = 0; row < height; row++) {
@@ -402,6 +424,7 @@ void blurRows( CRGB* leds, uint8_t width, uint8_t height, fract8 blur_amount)
         blur1d( rowbase, width, blur_amount);
     }
 }
+*/
 
 // blurColumns: perform a blur1d on each column of a rectangular matrix
 void blurColumns(CRGB* leds, uint8_t width, uint8_t height, fract8 blur_amount)
@@ -549,25 +572,10 @@ CRGB ColorFromPalette( const CRGBPalette16& pal, uint8_t index, uint8_t brightne
         if( brightness ) {
             brightness++; // adjust for rounding
             // Now, since brightness is nonzero, we don't need the full scale8_video logic;
-            // we can just to scale8 and then add one (unless scale8 fixed) to all nonzero inputs.
-            if( red1 )   {
-                red1 = scale8_LEAVING_R1_DIRTY( red1, brightness);
-#if !(FASTLED_SCALE8_FIXED==1)
-                red1++;
-#endif
-            }
-            if( green1 ) {
-                green1 = scale8_LEAVING_R1_DIRTY( green1, brightness);
-#if !(FASTLED_SCALE8_FIXED==1)
-                green1++;
-#endif
-            }
-            if( blue1 )  {
-                blue1 = scale8_LEAVING_R1_DIRTY( blue1, brightness);
-#if !(FASTLED_SCALE8_FIXED==1)
-                blue1++;
-#endif
-            }
+            // we can just to scale8 and then add one to all nonzero inputs.
+            if( red1 )   { red1 = scale8_LEAVING_R1_DIRTY( red1, brightness);     red1++; }
+            if( green1 ) { green1 = scale8_LEAVING_R1_DIRTY( green1, brightness); green1++; }
+            if( blue1 )  { blue1 = scale8_LEAVING_R1_DIRTY( blue1, brightness);   blue1++; }
             cleanup_R1();
         } else {
             red1 = 0;
@@ -627,25 +635,10 @@ CRGB ColorFromPalette( const TProgmemRGBPalette16& pal, uint8_t index, uint8_t b
         if( brightness ) {
             brightness++; // adjust for rounding
             // Now, since brightness is nonzero, we don't need the full scale8_video logic;
-            // we can just to scale8 and then add one (unless scale8 fixed) to all nonzero inputs.
-            if( red1 )   {
-                red1 = scale8_LEAVING_R1_DIRTY( red1, brightness);
-#if !(FASTLED_SCALE8_FIXED==1)
-                red1++;
-#endif
-            }
-            if( green1 ) {
-                green1 = scale8_LEAVING_R1_DIRTY( green1, brightness);
-#if !(FASTLED_SCALE8_FIXED==1)
-                green1++;
-#endif
-            }
-            if( blue1 )  {
-                blue1 = scale8_LEAVING_R1_DIRTY( blue1, brightness);
-#if !(FASTLED_SCALE8_FIXED==1)
-                blue1++;
-#endif
-            }
+            // we can just to scale8 and then add one to all nonzero inputs.
+            if( red1 )   { red1 = scale8_LEAVING_R1_DIRTY( red1, brightness);     red1++; }
+            if( green1 ) { green1 = scale8_LEAVING_R1_DIRTY( green1, brightness); green1++; }
+            if( blue1 )  { blue1 = scale8_LEAVING_R1_DIRTY( blue1, brightness);   blue1++; }
             cleanup_R1();
         } else {
             red1 = 0;
@@ -718,25 +711,10 @@ CRGB ColorFromPalette( const CRGBPalette32& pal, uint8_t index, uint8_t brightne
         if( brightness ) {
             brightness++; // adjust for rounding
             // Now, since brightness is nonzero, we don't need the full scale8_video logic;
-            // we can just to scale8 and then add one (unless scale8 fixed) to all nonzero inputs.
-            if( red1 )   {
-                red1 = scale8_LEAVING_R1_DIRTY( red1, brightness);
-#if !(FASTLED_SCALE8_FIXED==1)
-                red1++;
-#endif
-            }
-            if( green1 ) {
-                green1 = scale8_LEAVING_R1_DIRTY( green1, brightness);
-#if !(FASTLED_SCALE8_FIXED==1)
-                green1++;
-#endif
-            }
-            if( blue1 )  {
-                blue1 = scale8_LEAVING_R1_DIRTY( blue1, brightness);
-#if !(FASTLED_SCALE8_FIXED==1)
-                blue1++;
-#endif
-            }
+            // we can just to scale8 and then add one to all nonzero inputs.
+            if( red1 )   { red1 = scale8_LEAVING_R1_DIRTY( red1, brightness);     red1++; }
+            if( green1 ) { green1 = scale8_LEAVING_R1_DIRTY( green1, brightness); green1++; }
+            if( blue1 )  { blue1 = scale8_LEAVING_R1_DIRTY( blue1, brightness);   blue1++; }
             cleanup_R1();
         } else {
             red1 = 0;
@@ -802,25 +780,10 @@ CRGB ColorFromPalette( const TProgmemRGBPalette32& pal, uint8_t index, uint8_t b
         if( brightness ) {
             brightness++; // adjust for rounding
             // Now, since brightness is nonzero, we don't need the full scale8_video logic;
-            // we can just to scale8 and then add one (unless scale8 fixed) to all nonzero inputs.
-            if( red1 )   {
-                red1 = scale8_LEAVING_R1_DIRTY( red1, brightness);
-#if !(FASTLED_SCALE8_FIXED==1)
-                red1++;
-#endif
-            }
-            if( green1 ) {
-                green1 = scale8_LEAVING_R1_DIRTY( green1, brightness);
-#if !(FASTLED_SCALE8_FIXED==1)
-                green1++;
-#endif
-            }
-            if( blue1 )  {
-                blue1 = scale8_LEAVING_R1_DIRTY( blue1, brightness);
-#if !(FASTLED_SCALE8_FIXED==1)
-                blue1++;
-#endif
-            }
+            // we can just to scale8 and then add one to all nonzero inputs.
+            if( red1 )   { red1 = scale8_LEAVING_R1_DIRTY( red1, brightness);     red1++; }
+            if( green1 ) { green1 = scale8_LEAVING_R1_DIRTY( green1, brightness); green1++; }
+            if( blue1 )  { blue1 = scale8_LEAVING_R1_DIRTY( blue1, brightness);   blue1++; }
             cleanup_R1();
         } else {
             red1 = 0;
